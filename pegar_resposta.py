@@ -19,11 +19,11 @@ radicalizador = nltk.RSLPStemmer()
 stopwords = set(nltk.corpus.stopwords.words('portuguese') + list(punctuation))
 
 # Função que pega o input do usuário e escolhe a melhor resposta
-def pegarResposta(bot, frase, dic, fun, respostas_bocasus):
+def pegarResposta(bot, frase, dic, fun, respostas_bocasus, default):
 
     frase = tokenizador.tokenize(re.sub('[.,:;]+', '', frase))
 
-    resp_final = 'Oi, eu sou o BOCASUS, o chatbot que você precisa para te atender da melhor forma possível!'
+    resp_final = default
 
     countfun = {'conversa':0, 'marcar':0, 'desmarcar':0, 'agenda':0}
 
@@ -36,7 +36,6 @@ def pegarResposta(bot, frase, dic, fun, respostas_bocasus):
     for palavra in palavras_sem_stopwords:
 
         palavras_radicalizadas.append(radicalizador.stem(palavra))
-
   
     comb = []
 
@@ -57,28 +56,23 @@ def pegarResposta(bot, frase, dic, fun, respostas_bocasus):
                 f += p
 
             resp = bot.get_response(f)
+            
+            while respostas_bocasus.count(resp.text) < 1 and resp.text != default:
 
-        ##-------------------------------------------------------------------------##
-        ## OBS: Lembrar de usar este código caso o if simples se torne ineficiente ##
-        ## ||  ||  ||  ||  ||  ||  ||  ||  ||  ||  ||  ||  ||  ||  ||  ||  ||  ||  ##
-        ## \/  \/  \/  \/  \/  \/  \/  \/  \/  \/  \/  \/  \/  \/  \/  \/  \/  \/  ##
-        #v = 0
-        #while respostas_bocasus.count(resp.text) < 1 and v < 10:
-        #  resp = bocasus.get_response(f)
-        #if v < 10:
+                resp = bot.get_response(f)
 
-        if resp.text in respostas_bocasus:
+            if resp.text != default:
 
-            index = respostas_bocasus.index(resp.text)
+                index = respostas_bocasus.index(resp.text)
 
-            countfun[fun[str(index)]] += resp.confidence
+                countfun[fun[str(index)]] += resp.confidence
 
-            if countfun[fun[str(index)]] > max:
+                if countfun[fun[str(index)]] > max:
 
-                resp_final = resp.text
+                    resp_final = resp.text
 
-                max = countfun[fun[str(index)]]
+                    max = countfun[fun[str(index)]]
 
-                funcao = fun[str(index)]
+                    funcao = fun[str(index)]
 
     return resp_final, funcao

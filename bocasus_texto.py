@@ -10,16 +10,25 @@ from chatterbot.trainers import ListTrainer
 # Para criar os statements das frases
 from chatterbot.conversation import Statement
 
+# Para criar o método de comparação entre os inputs do usuário
+from chatterbot.comparisons import LevenshteinDistance
+from chatterbot.comparisons import levenshtein_distance
+
 # Para o uso de Regular Expressions
 import re
 
 # Para ter o módulo de pegar respostas
 import pegar_resposta as pr
 
+# Para importa o reconhecimento de áudio
+import reconhecimento_fala as rf
 
 ##----------Configuração dos chatbots-----------##
 ##||  ||  ||  ||  ||  ||  ||  ||  ||  ||  ||  ||##
 ##\/  \/  \/  \/  \/  \/  \/  \/  \/  \/  \/  \/##
+
+# Configuração da resposta default do bot
+default = 'Oi, eu sou o BOCASUS, o chatbot que você precisa para te atender da melhor forma possível!'
 
 #Configura o chatbot em si
 bocasus = ChatBot(
@@ -30,7 +39,19 @@ bocasus = ChatBot(
 
 	database_uri='sqlite:///database.sqlite3',
 
-    logic_adapter='chatterbot.logic.BestMatch'
+    logic_adapters=[
+
+        {
+            'import_path': 'chatterbot.logic.BestMatch',
+
+            'default_response': default,
+
+            'maximum_similarity_threshold': 0.0
+        }
+		
+    ],
+
+	statement_comparison_function=levenshtein_distance
 
 )
 
@@ -81,6 +102,7 @@ conversas = [
 	['querfazconsult', respostas_bocasus[1]],
 	['gostfaz', respostas_bocasus[1]],
 	['gostfazconsult', respostas_bocasus[1]],
+	['marquconsult', respostas_bocasus[1]],
 
 	#Desmarcar uma consulta
 	['gostdesmarc', respostas_bocasus[2]],
@@ -131,6 +153,11 @@ for x in conversas:
 # Define cada número da lista respostas_bocasus para seu respectivo valor
 fun = {'0':'conversa', '1':'marcar', '2':'desmarcar', '3':'agenda'}
 
+# Define se é modo áudio ou texto
+modo = input('Modo(a/t): ').lower()
+while modo != 'a' and modo != 't':
+	modo = input('Modo: ')
+
 # Loop da conversa
 while True:
 
@@ -144,17 +171,28 @@ while True:
     	## Fazer o bot entrar no loop para realizar alguma ação, se comunicando com um BD ##
     	##---------- Realizar todas as pequenas mudanças que forem necessárias  ----------##
     	##---------------- Otimizar o código, mais limpo e mais eficiente ----------------##
+    	##------------- Aceitar erros de escrita e ter um best match melhor --------------##
+    	##---------------- Otimizar o código, mais limpo e mais eficiente ----------------##
     	##--------- Construir o sistema de predição de doenças com deep learning ---------##
     	##--------------------------------------------------------------------------------##
 
 		# Determina o curso da conversa e o que o paciente quer fazer
 		dic = {'conversa':False, 'marcar':False, 'desmarcar':False, 'agenda':False}
 		
-		# Envia o input do usuário para a função de pegar a resposta
-		resp_final, funcao = [x for x in pr.pegarResposta(bocasus, input('Usuário: '), dic, fun, respostas_bocasus)]
+		if modo == 't':
+			# Envia o input do usuário para a função de pegar a resposta
+			resp_final, funcao = [x for x in pr.pegarResposta(bocasus, input('Usuário: '), dic, fun, respostas_bocasus, default)]
 
-		# Printa a resposta e recomeça o loop
-		print("BOCASUS:", resp_final)
+			# Printa a resposta e recomeça o loop
+			print("BOCASUS:", resp_final)
+		
+		else:
+			# Envia o input do usuário para a função de pegar a resposta
+			resp_final, funcao = [x for x in pr.pegarResposta(bocasus, rf.ouvir_microfone(), dic, fun, respostas_bocasus, default)]
+
+			# Printa a resposta e recomeça o loop
+			resposta = "espeak -s 200 -vpt '" + resp_final + "'"
+			os.system(resposta)
 
 		# Quando o paciente engaja em uma função, o bot fica sabendo
 		if funcao == 'aprender' or funcao == 'conversa':
