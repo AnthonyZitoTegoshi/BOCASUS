@@ -56,6 +56,7 @@ def pegarResposta(bot, frase, dic, fun, respostas_bocasus, default):
                 f += p
 
             resp = bot.get_response(f)
+            print(f)
             
             while respostas_bocasus.count(resp.text) < 1 and resp.text != default:
 

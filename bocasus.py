@@ -172,7 +172,6 @@ while True:
     	##---------- Realizar todas as pequenas mudanças que forem necessárias  ----------##
     	##---------------- Otimizar o código, mais limpo e mais eficiente ----------------##
     	##------------- Aceitar erros de escrita e ter um best match melhor --------------##
-    	##---------------- Otimizar o código, mais limpo e mais eficiente ----------------##
     	##--------- Construir o sistema de predição de doenças com deep learning ---------##
     	##--------------------------------------------------------------------------------##
 
